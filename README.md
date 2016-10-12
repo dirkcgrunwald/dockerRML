@@ -25,19 +25,20 @@ This will take a while to build, so find something to do for an hour
 
 ## Running the Container
 
-To launch in foreground terminal
+The container uses supervisord to start and ssh and jupyter 
+notebook process to which you can connect. There are two
+users, root/radioml and x2go/xgo. The x2go user has 'sudo'.
+
+The standard way to use the system would
+
 ```
-docker run -i -t radioml/radioml /bin/bash
+docker run --rm -it -p 2222:22 -p 8888:8888 -v $(pwd)/my-mnt:/home/x2go/mnt --name test_rml radioml/radioml
 ```
 
-To launch in background with ssh up (needed before x2go)
-```
-docker run -d -P --name test_rml radioml/radioml
-docker port test_rml 22
-docker port test_rml 8888
-```
+This starts the container with the SSH port (22) forwarded to localhost 2222
+and the container Jupyter port (8888) forwarded to local port 8888.
 
-Connect with CLI
+When the container is running, you connect with the CLI using
 ```
 sudo docker exec -i -t test_rml /bin/bash
 ```
@@ -46,22 +47,32 @@ or
 ssh root@`docker port test_rml 22`
 # use password radioml
 ```
+or
+```
+ssh x2go@`docker port test_rml 22`
+# use password x2go
+```
+It's recommended you use user `x2go`.
 
-Connect with x2go (good way to run GRC)
+The x2go application ( http://wiki.x2go.org/doku.php ) lets
+you access an XFCE4 desktop in the container. This is needed
+if you want to use `gnuradio-companion`.
+
+To connect with x2go
 ```
 docker port test_rml 22
 x2goclient
-# set ssh ip and port from docker, login with root/radioml, use xfce as window manager
+# set ssh ip and port from docker, login with x2go/x2go, use xfce as window manager
 ```
+If you try to login with the root user, you'll get an error -- use `x2go` and then `sudo` instead.
 
-Connect with iPython Notebook (good way to run python experiments)
+
+Connect with iPython Notebook (good way to run python experiments),
 ```
-sudo docker exec -i -t test_rml /bin/bash
-screen
-cd /root/src/notebooks/
-ipython notebook
+docker port test_rml 88888
 ```
-now open http://docker_ip:8888 in the host browser
+to determine the host and port for Jupyter
+and then open http://docker_ip:8888 in the host browser.
 
 ## Using the Image
 
